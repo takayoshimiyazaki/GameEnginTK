@@ -41,8 +41,6 @@ void Game::Initialize(HWND window, int width, int height)
 
 	m_batch = std::make_unique<PrimitiveBatch<VertexPositionNormal>>(m_d3dContext.Get());
 
-
-
 	m_effect = std::make_unique<BasicEffect>(m_d3dDevice.Get());
 
 	m_effect->SetProjection(XMMatrixOrthographicOffCenterRH(0,
@@ -64,6 +62,15 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// デバッグカメラを生成
 	m_debugCamera = std::make_unique<DebugCamera>(m_outputWidth, m_outputHeight);
+
+	// エフェクトファクトリーを生成
+	m_factory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+	// テクスチャのパスを指定
+	m_factory->SetDirectory(L"$Resources");
+	// モデルを生成
+	m_groundmodel = Model::CreateFromCMO(m_d3dDevice.Get(), L"$Resources/ground1m.cmo", *m_factory);
+	//
+	m_skymodel = Model::CreateFromCMO(m_d3dDevice.Get(), L"$Resources/sky.cmo", *m_factory);
 }
 
 // Executes the basic game loop.
@@ -120,11 +127,11 @@ void Game::Render()
 	m_d3dContext->RSSetState(m_states->Wireframe());
 
 	// ビュー行列を生成
-	//m_view = Matrix::CreateLookAt(
-	//	Vector3(0, 0, 2.f),	// カメラ視点
-	//	Vector3(0,0,0),	// カメラ参照点
-	//	Vector3(0,1,0)	// 画面上方向ベクトル
-	//);
+	m_view = Matrix::CreateLookAt(
+		Vector3(0, 0, 2.f),	// カメラ視点
+		Vector3(0,0,0),	// カメラ参照点
+		Vector3(0,1,0)	// 画面上方向ベクトル
+	);
 	// デバッグカメラからビュー行列を取得
 	m_view = m_debugCamera->GetCameraMatrix();
 	// プロジェクション行列を生成
@@ -132,13 +139,17 @@ void Game::Render()
 		XM_PI / 4.f,	// 視野角（上下方向）
 		float(m_outputWidth) / float(m_outputHeight),	// アスペクト比
 		0.1f, // ニアクリップ
-		50.f);	// ファークリップ
+		500.f);	// ファークリップ
 
 	m_effect->SetView(m_view);
 	m_effect->SetProjection(m_proj);
 
 	m_effect->Apply(m_d3dContext.Get());
 	m_d3dContext->IASetInputLayout(m_inputLayout.Get());
+
+	// モデルの描画
+	m_skymodel->Draw(m_d3dContext.Get(), *m_states, m_world, m_view, m_proj);
+	m_groundmodel->Draw(m_d3dContext.Get(), *m_states, m_world, m_view, m_proj);
 
 	m_batch->Begin();
 
@@ -157,9 +168,9 @@ void Game::Render()
 	//VertexPositionColor v2(Vector3(0.5f, -0.5f, 0.5f), Colors::Blue);
 	//VertexPositionColor v3(Vector3(-0.5f, -0.5f, 0.5f), Colors::Green);
 
-	////VertexPositionColor v1(Vector3(400.f, 150.f, 0.f), Colors::Red);
-	////VertexPositionColor v2(Vector3(600.f, 450.f, 0.f), Colors::Blue);
-	////VertexPositionColor v3(Vector3(200.f, 450.f, 0.f), Colors::Green);
+	//VertexPositionColor v1(Vector3(400.f, 150.f, 0.f), Colors::Red);
+	//VertexPositionColor v2(Vector3(600.f, 450.f, 0.f), Colors::Blue);
+	//VertexPositionColor v3(Vector3(200.f, 450.f, 0.f), Colors::Green);
 	//
 	//m_batch->DrawTriangle(v1, v2, v3);
 
