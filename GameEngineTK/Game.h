@@ -93,4 +93,18 @@ private:
 	// モデル
 	std::unique_ptr<DirectX::Model> m_groundmodel;
 	std::unique_ptr<DirectX::Model> m_skymodel;
+	std::unique_ptr<DirectX::Model> m_ball;
+	std::unique_ptr<DirectX::Model> m_teapot;
+
+	//球のワールド行列
+	DirectX::SimpleMath::Matrix m_worldBall[20];
+	DirectX::SimpleMath::Matrix m_worldTeapot[20];
+
+	float m_angle;
+	float m_x[20];
+	float m_z[20];
+	float m_scale;
+	bool m_switch;
+	DirectX::SimpleMath::Vector3 m_startPos[20];
+	DirectX::SimpleMath::Vector3 m_targetPos;
 };
