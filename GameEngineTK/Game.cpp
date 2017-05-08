@@ -72,8 +72,10 @@ void Game::Initialize(HWND window, int width, int height)
 	m_skymodel = Model::CreateFromCMO(m_d3dDevice.Get(), L"$Resources/skydome.cmo", *m_factory);
 	//m_ball = Model::CreateFromCMO(m_d3dDevice.Get(), L"$Resources/ball.cmo", *m_factory);
 	m_teapot = Model::CreateFromCMO(m_d3dDevice.Get(), L"$Resources/TeaPot.cmo", *m_factory);
+	m_head = Model::CreateFromCMO(m_d3dDevice.Get(), L"$Resources/haed.cmo", *m_factory);
 	
 	m_angle = 0.0f;
+	m_headAngle = 0.0f;
 	m_scale = 1.0f;
 	m_switch = true;
 	for (int i = 0; i < 20; i++)
@@ -88,6 +90,8 @@ void Game::Initialize(HWND window, int width, int height)
 	}
 	m_targetPos = Vector3(0, 0, 0);
 	
+	// キーボードを生成
+	m_keyboard = std::make_unique<Keyboard>();
 }
 
 // Executes the basic game loop.
@@ -182,6 +186,50 @@ void Game::Update(DX::StepTimer const& timer)
 	//	m_worldBall[i+10] = transmat * rotmat;
 	//}
 	
+	// キーボードの状態を取得
+	Keyboard::State kb = m_keyboard->GetState();
+
+	// 左旋回処理
+	if (kb.A)
+	{
+		//回転		
+		m_headAngle += 0.03f;		
+	}
+	// 右旋回処理
+	if (kb.D)
+	{
+		//回転		
+		m_headAngle -= 0.03f;		
+	}
+	// 前進処理
+	if (kb.W)
+	{
+		// 移動ベクトル（Z軸方向移動）
+		Vector3 moveV(0, 0, -1.0f);
+		// 移動ベクトルを自機角度分回転させる
+		//moveV = Vector3::TransformNormal(moveV, m_worldHead);
+		Matrix rotmatY = Matrix::CreateRotationY(m_headAngle);
+		moveV = Vector3::TransformNormal(moveV, rotmatY);
+		// 自機の移動する座標
+		m_headPos += moveV;
+	}
+	// 後進処理
+	if (kb.S)
+	{
+		// 移動ベクトル（Z軸方向移動）
+		Vector3 moveV(0, 0, 1.0f);
+		// 移動ベクトルを自機角度分回転させる
+		moveV = Vector3::TransformNormal(moveV, m_worldHead);
+		// 自機の移動する座標
+		m_headPos += moveV;
+	}	
+
+	{
+		// 自機のワールド行列を計算
+		Matrix transmat = Matrix::CreateTranslation(m_headPos);
+		Matrix rotmatY = Matrix::CreateRotationY(m_headAngle);
+		m_worldHead =  rotmatY * transmat;
+	}
 }
 
 // Draws the scene.
@@ -244,6 +292,8 @@ void Game::Render()
 		//m_ball->Draw(m_d3dContext.Get(), *m_states, m_worldBall[i], m_view, m_proj);
 		m_teapot->Draw(m_d3dContext.Get(), *m_states, m_worldTeapot[i], m_view, m_proj);
 	}
+
+	m_head->Draw(m_d3dContext.Get(), *m_states, m_worldHead, m_view, m_proj);
 
 	m_batch->Begin();
 
