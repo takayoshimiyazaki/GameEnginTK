@@ -13,6 +13,7 @@
 #include <SimpleMath.h>
 #include <Model.h>
 #include <Keyboard.h>
+#include "Camera.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -117,4 +118,7 @@ private:
 	float m_headAngle;
 	// 頭のワールド行列
 	DirectX::SimpleMath::Matrix m_worldHead;
+
+	// カメラ
+	std::unique_ptr<Camera> m_camera;
 };

@@ -63,6 +63,16 @@ void Game::Initialize(HWND window, int width, int height)
 	// デバッグカメラを生成
 	m_debugCamera = std::make_unique<DebugCamera>(m_outputWidth, m_outputHeight);
 
+	// カメラの生成
+	m_camera = std::make_unique<Camera>(m_outputWidth, m_outputHeight);
+	/*m_camera->SetEyePos(m_headPos);
+	m_camera->SetRefPos(Vector3(0, 0, 0));
+	m_camera->SetUpVec(Vector3(0, 1, 0));
+	m_camera->SetFovYPos(XMConvertToRadians(60.0f));
+	m_camera->SetAspectPos(float(m_outputWidth) / float(m_outputHeight));
+	m_camera->SetNearClipPos(0.1f);
+	m_camera->SetFarClipPos(1000.0f);*/
+
 	// エフェクトファクトリーを生成
 	m_factory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
 	// テクスチャのパスを指定
@@ -92,6 +102,8 @@ void Game::Initialize(HWND window, int width, int height)
 	
 	// キーボードを生成
 	m_keyboard = std::make_unique<Keyboard>();
+
+	m_headPos = Vector3(0, 0, 30);
 }
 
 // Executes the basic game loop.
@@ -230,6 +242,18 @@ void Game::Update(DX::StepTimer const& timer)
 		Matrix rotmatY = Matrix::CreateRotationY(m_headAngle);
 		m_worldHead =  rotmatY * transmat;
 	}
+
+	// カメラの更新
+	m_camera->SetEyePos(m_headPos);
+	m_camera->SetRefPos(Vector3(0, 0, 0));
+	m_camera->SetUpVec(Vector3(0, 1, 0));
+	m_camera->SetFovYPos(XMConvertToRadians(60.0f));
+	m_camera->SetAspectPos(float(m_outputWidth) / float(m_outputHeight));
+	m_camera->SetNearClipPos(0.1f);
+	m_camera->SetFarClipPos(1000.0f);
+	m_camera->Update();
+	m_view = m_camera->GetViewMatrix();
+	m_proj = m_camera->GetProjectMatrix();
 }
 
 // Draws the scene.
@@ -270,13 +294,32 @@ void Game::Render()
 		Vector3(0,1,0)	// 画面上方向ベクトル
 	);
 	// デバッグカメラからビュー行列を取得
-	m_view = m_debugCamera->GetCameraMatrix();
+	//m_view = m_debugCamera->GetCameraMatrix();
+
+	//// カメラの位置（視点座標）
+	//Vector3 eyePos(0, 0, 5);
+	//// カメラの見ている先（注視点）
+	//Vector3 refPos(0, 0, 0);
+	//// カメラの上方向のベクトル
+	//Vector3 upVec(0, 1, 0);
+	//upVec.Normalize();
+	//m_view = Matrix::CreateLookAt(eyePos,refPos,upVec);
 	// プロジェクション行列を生成
-	m_proj = Matrix::CreatePerspectiveFieldOfView(
-		XM_PI / 4.f,	// 視野角（上下方向）
-		float(m_outputWidth) / float(m_outputHeight),	// アスペクト比
-		0.1f, // ニアクリップ
-		500.f);	// ファークリップ
+	//float fovY = XMConvertToRadians(60.0f);
+	//float aspect = float(m_outputWidth) / float(m_outputHeight);
+	//float nearClip = 0.1f;
+	//float farClip = 1000.0f;
+	//m_proj = Matrix::CreatePerspectiveFieldOfView(
+	//	fovY,	// 視野角（上下方向）
+	//	aspect,	// アスペクト比
+	//	nearClip, // ニアクリップ
+	//	farClip);	// ファークリップ
+
+	//m_proj = Matrix::CreatePerspectiveFieldOfView(
+	//	XM_PI / 4.f,	// 視野角（上下方向）
+	//	float(m_outputWidth) / float(m_outputHeight),	// アスペクト比
+	//	0.1f, // ニアクリップ
+	//	500.f);	// ファークリップ
 
 	m_effect->SetView(m_view);
 	m_effect->SetProjection(m_proj);
