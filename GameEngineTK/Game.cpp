@@ -64,7 +64,7 @@ void Game::Initialize(HWND window, int width, int height)
 	m_debugCamera = std::make_unique<DebugCamera>(m_outputWidth, m_outputHeight);
 
 	// カメラの生成
-	m_camera = std::make_unique<Camera>(m_outputWidth, m_outputHeight);
+	m_camera = std::make_unique<FollowCamera>(m_outputWidth, m_outputHeight);
 	/*m_camera->SetEyePos(m_headPos);
 	m_camera->SetRefPos(Vector3(0, 0, 0));
 	m_camera->SetUpVec(Vector3(0, 1, 0));
@@ -104,6 +104,11 @@ void Game::Initialize(HWND window, int width, int height)
 	m_keyboard = std::make_unique<Keyboard>();
 
 	m_headPos = Vector3(0, 0, 30);
+
+	m_camera->SetFovYPos(XMConvertToRadians(60.0f));
+	m_camera->SetAspectPos(float(m_outputWidth) / float(m_outputHeight));
+	m_camera->SetNearClipPos(0.1f);
+	m_camera->SetFarClipPos(1000.0f);
 }
 
 // Executes the basic game loop.
@@ -243,17 +248,16 @@ void Game::Update(DX::StepTimer const& timer)
 		m_worldHead =  rotmatY * transmat;
 	}
 
-	// カメラの更新
-	m_camera->SetEyePos(m_headPos);
-	m_camera->SetRefPos(Vector3(0, 0, 0));
-	m_camera->SetUpVec(Vector3(0, 1, 0));
-	m_camera->SetFovYPos(XMConvertToRadians(60.0f));
-	m_camera->SetAspectPos(float(m_outputWidth) / float(m_outputHeight));
-	m_camera->SetNearClipPos(0.1f);
-	m_camera->SetFarClipPos(1000.0f);
-	m_camera->Update();
-	m_view = m_camera->GetViewMatrix();
-	m_proj = m_camera->GetProjectMatrix();
+	// カメラの更新	
+	{
+		m_camera->SetTargetPos(m_headPos);
+		m_camera->SetTargetAngle(m_headAngle);
+
+		m_camera->Update();
+		m_view = m_camera->GetViewMatrix();
+		m_proj = m_camera->GetProjectMatrix();
+	}
+	
 }
 
 // Draws the scene.

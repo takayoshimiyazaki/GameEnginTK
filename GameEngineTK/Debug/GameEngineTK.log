@@ -4,7 +4,6 @@
   Assets\haed.FBX
   Assets\skydome.FBX
   Assets\TeaPot.FBX
-  Game.cpp
-c:\users\s162176\documents\visual studio 2015\projects\gameenginetk\gameenginetk\game.cpp(47): warning C4244: '引数': 'int' から 'float' への変換です。データが失われる可能性があります。
+     ライブラリ C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.lib とオブジェクト C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.exp を作成中
   GameEngineTK.vcxproj -> C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.exe
   GameEngineTK.vcxproj -> C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.pdb (Full PDB)

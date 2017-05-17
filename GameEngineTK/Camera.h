@@ -14,22 +14,22 @@ public:
 	virtual ~Camera();
 
 	// 更新
-	void Update();
+	virtual void Update();
 
 	// ビュー行列の取得
-	DirectX::SimpleMath::Matrix GetViewMatrix();
+	const DirectX::SimpleMath::Matrix GetViewMatrix();
 
 	// 射影行列の取得
-	DirectX::SimpleMath::Matrix GetProjectMatrix();
+	const DirectX::SimpleMath::Matrix GetProjectMatrix();
 
 	// 視点座標のセット
-	void SetEyePos(DirectX::SimpleMath::Vector3 eyePos);
+	void SetEyePos(const DirectX::SimpleMath::Vector3 eyePos);
 
 	// 注視点のセット
-	void SetRefPos(DirectX::SimpleMath::Vector3 refPos);
+	void SetRefPos(const DirectX::SimpleMath::Vector3 refPos);
 
 	// ベクトルのセット
-	void SetUpVec(DirectX::SimpleMath::Vector3 upVec);
+	void SetUpVec(const DirectX::SimpleMath::Vector3 upVec);
 
 	// 視野角のセット
 	void SetFovYPos(float fovY);

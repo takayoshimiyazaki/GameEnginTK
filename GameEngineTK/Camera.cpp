@@ -42,27 +42,27 @@ void Camera::Update()
 		m_farClip);	// ファークリップ
 }
 
-DirectX::SimpleMath::Matrix Camera::GetViewMatrix()
+const DirectX::SimpleMath::Matrix Camera::GetViewMatrix()
 {
 	return m_view;
 }
 
-DirectX::SimpleMath::Matrix Camera::GetProjectMatrix()
+const DirectX::SimpleMath::Matrix Camera::GetProjectMatrix()
 {
 	return m_proj;
 }
 
-void Camera::SetEyePos(DirectX::SimpleMath::Vector3 eyePos)
+void Camera::SetEyePos(const DirectX::SimpleMath::Vector3 eyePos)
 {
 	m_eyePos = eyePos;
 }
 
-void Camera::SetRefPos(DirectX::SimpleMath::Vector3 refPos)
+void Camera::SetRefPos(const DirectX::SimpleMath::Vector3 refPos)
 {
 	m_refPos = refPos;
 }
 
-void Camera::SetUpVec(DirectX::SimpleMath::Vector3 upVec)
+void Camera::SetUpVec(const DirectX::SimpleMath::Vector3 upVec)
 {
 	m_upVec = upVec;
 }
