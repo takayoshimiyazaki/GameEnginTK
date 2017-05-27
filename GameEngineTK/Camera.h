@@ -17,19 +17,19 @@ public:
 	virtual void Update();
 
 	// ビュー行列の取得
-	const DirectX::SimpleMath::Matrix GetViewMatrix();
+	const DirectX::SimpleMath::Matrix& GetViewMatrix();
 
 	// 射影行列の取得
-	const DirectX::SimpleMath::Matrix GetProjectMatrix();
+	const DirectX::SimpleMath::Matrix& GetProjectMatrix();
 
 	// 視点座標のセット
-	void SetEyePos(const DirectX::SimpleMath::Vector3 eyePos);
+	void SetEyePos(const DirectX::SimpleMath::Vector3& eyePos);
 
 	// 注視点のセット
-	void SetRefPos(const DirectX::SimpleMath::Vector3 refPos);
+	void SetRefPos(const DirectX::SimpleMath::Vector3& refPos);
 
 	// ベクトルのセット
-	void SetUpVec(const DirectX::SimpleMath::Vector3 upVec);
+	void SetUpVec(const DirectX::SimpleMath::Vector3& upVec);
 
 	// 視野角のセット
 	void SetFovYPos(float fovY);
