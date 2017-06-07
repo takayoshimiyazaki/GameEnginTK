@@ -22,15 +22,6 @@ class Game
 {
 public:
 
-	enum PLAYER_PARTS
-	{
-		PLAYER_PARTS_CATAPIRA,
-		PLAYER_PARTS_HEAD,
-		PLAYER_PARTS_WING,
-		PLAYER_PARTS_UFO,
-
-		PLAYER_PARTS_NUM
-	};
 
 	Game();
 
@@ -104,44 +95,12 @@ private:
 	// エフェクトファクトリー
 	std::unique_ptr<DirectX::EffectFactory> m_factory;
 	// モデル
-	Obj3d m_objSkyDome;
-	std::vector<Obj3d> m_objPlayer;
-	//std::unique_ptr<DirectX::Model> m_groundmodel;
-	//std::unique_ptr<DirectX::Model> m_skymodel;
-	/*std::unique_ptr<DirectX::Model> m_ball;
-	std::unique_ptr<DirectX::Model> m_teapot;*/
-	//std::unique_ptr<DirectX::Model> m_head;
-
-	////球のワールド行列
-	//DirectX::SimpleMath::Matrix m_worldBall[20];
-	//DirectX::SimpleMath::Matrix m_worldTeapot[20];
-
-	//float m_angle;
-	//float m_x[20];
-	//float m_z[20];
-	//float m_scale;
-	//bool m_switch;
-	//DirectX::SimpleMath::Vector3 m_startPos[20];
-	//DirectX::SimpleMath::Vector3 m_targetPos;
+	Obj3d m_objSkyDome;	
 
 	// キーボード
 	std::unique_ptr<DirectX::Keyboard> m_keyboard;
 
-	DirectX::SimpleMath::Vector3 m_headPos;
-	float m_headAngle;
-	// 頭のワールド行列
-	DirectX::SimpleMath::Matrix m_worldHead;
-	// 頭2のワールド行列
-	//DirectX::SimpleMath::Matrix m_worldHead2;
-
-	//// 目標パーツ1（親）
-	//Obj3d m_ObjPlayer1;
-	//// 目標パーツ2（子）
-	//Obj3d m_ObjPlayer2;
-
 	// カメラ
 	std::unique_ptr<FollowCamera> m_camera;
-
 	
-
 };

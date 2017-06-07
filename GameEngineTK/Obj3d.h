@@ -43,7 +43,7 @@ public:
 	// CMOモデルを読み込む
 	void LoadModel(const wchar_t* fileName);
 	// 更新
-	void Update();
+	virtual void Update();
 	// 描画
 	void Draw();
 
@@ -55,7 +55,7 @@ public:
 	// 平行移動(XYZ)
 	void SetTranslation(const DirectX::SimpleMath::Vector3& translation) { m_translation = translation; }
 	// 親の3Dオブジェクト
-	void ObjParent(Obj3d* ObjParent) { m_ObjParent = ObjParent; }
+	void SetObjParent(Obj3d* ObjParent) { m_ObjParent = ObjParent; }
 
 	// getter ////////////////
 	// スケーリング(XYZ)

@@ -11,7 +11,7 @@ FollowCamera::FollowCamera(int width, int height)
 	m_targetPos = Vector3(0.0f, 0.0f, 0.0f);
 	m_targetAngle = 0.0f;
 	m_keyboard = nullptr;
-	m_isFPS = true;
+	m_isFPS = false;
 }
 
 void FollowCamera::Update()
@@ -60,6 +60,9 @@ void FollowCamera::Update()
 
 	SetEyePos(eyePos);
 	SetRefPos(refPos);
+
+	SetTargetPos(m_objPlayer[0].GetTranslation());
+	SetTargetAngle(m_objPlayer[0].GetRotate().y);
 
 	// 基底クラスの更新
 	Camera::Update();

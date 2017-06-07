@@ -73,3 +73,4 @@ void Obj3d::Draw()
 		m_model->Draw(m_d3dContext.Get(), *m_states, m_world, m_camera->GetViewMatrix(), m_camera->GetProjectMatrix());
 	}
 }
+

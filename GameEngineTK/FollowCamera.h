@@ -16,7 +16,7 @@ public:
 	// コンストラクタ
 	FollowCamera(int width, int height);	
 		
-	// 後進
+	// 更新
 	void Update() override;
 
 	// 追従対象の座標をセット

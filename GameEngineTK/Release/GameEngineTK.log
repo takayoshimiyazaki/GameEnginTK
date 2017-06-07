@@ -7,5 +7,15 @@
   Assets\TeaPot.FBX
   Assets\ufo.FBX
   Assets\wing.FBX
+  Game.cpp
+Game.cpp(58): warning C4244: '引数': 'int' から 'float' への変換です。データが失われる可能性があります。
+  Main.cpp
+  Player.cpp
+     ライブラリ C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Release\GameEngineTK.lib とオブジェクト C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Release\GameEngineTK.exp を作成中
+  コード生成しています。
+  37 of 500 functions ( 7.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    22 functions had inline decision re-evaluated but remain unchanged
+  コード生成が終了しました。
   GameEngineTK.vcxproj -> C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Release\GameEngineTK.exe
   GameEngineTK.vcxproj -> C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Release\GameEngineTK.pdb (Full PDB)
