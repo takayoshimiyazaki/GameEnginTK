@@ -3,9 +3,9 @@
 *
 *	@brief	自機
 *
-*	@date	2015/05/08
+*	@date	2017/06/08
 *
-*	@author	藤澤　伸治
+*	@author	宮崎貴善
 */
 #pragma once
 
@@ -20,7 +20,7 @@
 class Player
 {
 public:
-
+	// 自機パーツ
 	enum PARTS
 	{
 		PARTS_CATAPIRA,
@@ -43,8 +43,14 @@ public:
 	void Calc();
 	// 描画
 	void Draw();
+	// 弾丸を発射
+	void FireBullet();
+	// 弾丸を再装填（リセット）
+	void ResetBullet();
 	// 座標を取得
 	const DirectX::SimpleMath::Vector3& GetTrans();
+	// 座標を取得
+	const DirectX::SimpleMath::Vector3& GetRot();
 	// 座標を設定
 	void SetTrans(const DirectX::SimpleMath::Vector3& trans);
 	// 回転を設定
@@ -55,7 +61,7 @@ public:
 protected:
 	// メンバ変数
 	// ロボットの構成パーツ
-	std::vector<Obj3d>	m_Obj;
+	std::vector<Obj3d> m_Obj;
 
 	// キーボード
 	DirectX::Keyboard* m_pKeyboard;
@@ -70,5 +76,10 @@ protected:
 	float m_cnt;
 	float m_wingRotate;
 
-};
+	// 弾丸の速度ベクトル
+	DirectX::SimpleMath::Vector3 m_BulletVel;
 
+	// バレットの寿命
+	int m_bulletCnt;
+
+};

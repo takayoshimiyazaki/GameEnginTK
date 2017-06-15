@@ -5,7 +5,6 @@
 #pragma once
 
 #include "StepTimer.h"
-#include "DebugCamera.h"
 #include <PrimitiveBatch.h>
 #include <VertexTypes.h>
 #include <Effects.h>
@@ -13,15 +12,17 @@
 #include <SimpleMath.h>
 #include <Model.h>
 #include <Keyboard.h>
+#include "DebugCamera.h"
 #include "FollowCamera.h"
 #include "Obj3d.h"
+#include "Player.h"
+#include "Enemy.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
 class Game
 {
 public:
-
 
 	Game();
 
@@ -94,13 +95,21 @@ private:
 
 	// エフェクトファクトリー
 	std::unique_ptr<DirectX::EffectFactory> m_factory;
+
 	// モデル
 	Obj3d m_objSkyDome;	
+	std::unique_ptr<DirectX::Model> m_modelGround;
 
 	// キーボード
 	std::unique_ptr<DirectX::Keyboard> m_keyboard;
 
 	// カメラ
 	std::unique_ptr<FollowCamera> m_camera;
+
+	// プレイヤー
+	std::unique_ptr<Player> m_player;
+
+	// プレイヤー
+	std::vector<std::unique_ptr<Enemy>> m_enemies;
 	
 };

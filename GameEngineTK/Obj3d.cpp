@@ -35,6 +35,8 @@ Obj3d::Obj3d()
 	// メンバ変数の初期化
 	m_scale = Vector3(1, 1, 1);
 	m_ObjParent = nullptr;
+	// デフォルトではオイラー角を使用
+	m_UseQuaternion = false;
 }
 
 void Obj3d::LoadModel(const wchar_t * fileName)
@@ -47,11 +49,21 @@ void Obj3d::Update()
 {
 	// ワールド行列を計算
 	Matrix scalemat = Matrix::CreateScale(m_scale);	
+
 	//回転
-	Matrix rotmatZ = Matrix::CreateRotationZ(m_rotation.z);
-	Matrix rotmatX = Matrix::CreateRotationX(m_rotation.x);
-	Matrix rotmatY = Matrix::CreateRotationY(m_rotation.y);
-	Matrix rotmat = rotmatZ * rotmatX * rotmatY;
+	Matrix rotmat;
+	if (m_UseQuaternion)
+	{	// クォータニオン回転をで計算
+		rotmat = Matrix::CreateFromQuaternion(m_rotationQ);
+	}
+	else
+	{	// オイラー角で回転を計算
+		Matrix rotmatZ = Matrix::CreateRotationZ(m_rotation.z);
+		Matrix rotmatX = Matrix::CreateRotationX(m_rotation.x);
+		Matrix rotmatY = Matrix::CreateRotationY(m_rotation.y);
+		rotmat = rotmatZ * rotmatX * rotmatY;
+	}
+	
 	//平行移動
 	Matrix transmat = Matrix::CreateTranslation(m_translation);
 	

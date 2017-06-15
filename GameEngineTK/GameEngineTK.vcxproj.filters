@@ -14,7 +14,9 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="FollowCamera.h" />
     <ClInclude Include="Obj3d.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Collision.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -24,7 +26,9 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="FollowCamera.cpp" />
     <ClCompile Include="Obj3d.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Collision.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

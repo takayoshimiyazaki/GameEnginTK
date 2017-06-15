@@ -43,15 +43,17 @@ public:
 	// CMOモデルを読み込む
 	void LoadModel(const wchar_t* fileName);
 	// 更新
-	virtual void Update();
+	void Update();
 	// 描画
 	void Draw();
 
 	// setter //////////////////
 	// スケーリング(XYZ)
-	void SetScale(const DirectX::SimpleMath::Vector3& scale) { m_scale = scale; }
-	// 回転角(XYZ)
+	void SetScale(const DirectX::SimpleMath::Vector3& scale) { m_scale = scale; m_UseQuaternion = false; }
+	// 回転角(オイラー角)
 	void SetRotation(const DirectX::SimpleMath::Vector3& rotation) { m_rotation = rotation; }
+	// 回転角(クォータニオン)
+	void SetRotationQ(const DirectX::SimpleMath::Quaternion& rotationQ) { m_rotationQ = rotationQ; m_UseQuaternion = true; }
 	// 平行移動(XYZ)
 	void SetTranslation(const DirectX::SimpleMath::Vector3& translation) { m_translation = translation; }
 	// 親の3Dオブジェクト
@@ -75,8 +77,10 @@ private:
 
 	// スケーリング(XYZ)
 	DirectX::SimpleMath::Vector3 m_scale;
-	// 回転角(XYZ)
+	// 回転角(オイラー角)
 	DirectX::SimpleMath::Vector3 m_rotation;
+	// 回転角(クォータニオン)
+	DirectX::SimpleMath::Quaternion m_rotationQ;
 	// 平行移動(XYZ)
 	DirectX::SimpleMath::Vector3 m_translation;
 
@@ -85,4 +89,7 @@ private:
 
 	// 親のオブジェクトへのポインタ
 	Obj3d* m_ObjParent;
+
+	// 回転をクォータニオンで扱うフラグ
+	bool m_UseQuaternion;
 };

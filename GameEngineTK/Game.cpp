@@ -81,7 +81,24 @@ void Game::Initialize(HWND window, int width, int height)
 	// モデルを生成
 	m_objSkyDome.LoadModel(L"$Resources/skydome.cmo");
 
-		
+	m_modelGround = Model::CreateFromCMO(m_d3dDevice.Get(),	L"$Resources/ground200m.cmo", *m_factory);
+
+	// プレイヤーの生成
+	m_player = std::make_unique<Player>(m_keyboard.get());
+	m_player->Initialize();	
+
+	// 追従カメラにプレイヤーをセット
+	m_camera->SetPlayer(m_player.get());
+
+	// 敵を生成
+	int enemyNum = rand() % 10 + 1;
+	m_enemies.resize(enemyNum);
+
+	for (int i = 0; i < enemyNum; i++)
+	{
+		m_enemies[i] = std::make_unique<Enemy>(m_keyboard.get());
+		m_enemies[i]->Initialize();
+	}
 }
 
 // Executes the basic game loop.
@@ -108,14 +125,22 @@ void Game::Update(DX::StepTimer const& timer)
 	// キーボードの状態を取得
 	Keyboard::State kb = m_keyboard->GetState();
 
+	m_player->Update();
+
+	for (std::vector<std::unique_ptr<Enemy>>::iterator it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		//Enemy* enemy = it->get();
+		//enemy->Update();
+
+		(*it)->Update();
+	}
+
 	// カメラの更新	
 	m_camera->Update();
 	m_view = m_camera->GetViewMatrix();
 	m_proj = m_camera->GetProjectMatrix();
-		
 				
-	m_objSkyDome.Update();
-	
+	m_objSkyDome.Update();	
 }
 
 // Draws the scene.
@@ -158,7 +183,20 @@ void Game::Render()
 
 	// モデルの描画
 	m_objSkyDome.Draw();
+
+	m_modelGround->Draw(m_d3dContext.Get(),
+		*m_states,
+		Matrix::Identity,
+		m_view,
+		m_proj
+	);
 	
+	m_player->Draw();
+
+	for (std::vector<std::unique_ptr<Enemy>>::iterator it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{		
+		(*it)->Draw();
+	}
 	
 	m_batch->Begin();
 

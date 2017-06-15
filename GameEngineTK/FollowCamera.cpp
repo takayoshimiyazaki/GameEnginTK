@@ -8,10 +8,11 @@ const float FollowCamera::CAMERA_DISTANCE = 5.0f;
 FollowCamera::FollowCamera(int width, int height)
 	:Camera(width,height)
 {
-	m_targetPos = Vector3(0.0f, 0.0f, 0.0f);
+	m_targetPos = Vector3::Zero;
 	m_targetAngle = 0.0f;
 	m_keyboard = nullptr;
 	m_isFPS = false;
+	m_player = nullptr;
 }
 
 void FollowCamera::Update()
@@ -24,7 +25,16 @@ void FollowCamera::Update()
 		m_isFPS = !m_isFPS;
 	}
 
+	// 追従対象の座標・回転角をセット
+	if (m_player)
+	{
+		SetTargetPos(m_player->GetTrans());
+		SetTargetAngle(m_player->GetRot().y);
+	}	
+
+	// カメラ視点座標、参照点座標
 	Vector3 eyePos, refPos;
+
 	if (m_isFPS)
 	{
 		// FPSカメラ
@@ -59,10 +69,7 @@ void FollowCamera::Update()
 	
 
 	SetEyePos(eyePos);
-	SetRefPos(refPos);
-
-	SetTargetPos(m_objPlayer[0].GetTranslation());
-	SetTargetAngle(m_objPlayer[0].GetRotate().y);
+	SetRefPos(refPos);	
 
 	// 基底クラスの更新
 	Camera::Update();
