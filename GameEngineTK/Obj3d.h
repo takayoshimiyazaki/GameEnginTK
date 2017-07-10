@@ -21,6 +21,8 @@ public:
 		Microsoft::WRL::ComPtr<ID3D11Device>            d3dDevice,
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext>     d3dContext,
 		Camera* camera);
+	// 減算描画設定をセット
+	static void SetSubtractive();
 private:
 	// 静的メンバ変数
 	// デバイス
@@ -32,11 +34,15 @@ private:
 	// エフェクトファクトリー
 	static std::unique_ptr<DirectX::EffectFactory> m_factory;
 	// カメラ
-	static Camera* m_camera;
+	static Camera* m_camera;	
+
+	static ID3D11BlendState* m_pBlendStateSubtract;
 
 public:
 	// コンストラクタ関数
 	Obj3d();
+	// コピーコンストラクタ関数
+	//Obj3d(const Obj3d& obj);
 
 	// メンバ関数
 
@@ -46,6 +52,10 @@ public:
 	void Update();
 	// 描画
 	void Draw();
+	// 減算描画での描画（影用）
+	void DrawSubtractive();
+	// オブジェクトのライティングを無効にする
+	void DisableLighting();
 
 	// setter //////////////////
 	// スケーリング(XYZ)
@@ -58,7 +68,9 @@ public:
 	void SetTranslation(const DirectX::SimpleMath::Vector3& translation) { m_translation = translation; }
 	// 親の3Dオブジェクト
 	void SetObjParent(Obj3d* ObjParent) { m_ObjParent = ObjParent; }
-
+	// ワールド行列
+	void SetWorld(const DirectX::SimpleMath::Matrix& world) { m_world = world; }
+	
 	// getter ////////////////
 	// スケーリング(XYZ)
 	const DirectX::SimpleMath::Vector3& GetScale() { return m_scale; }
@@ -68,6 +80,8 @@ public:
 	const DirectX::SimpleMath::Vector3& GetTranslation() { return m_translation; }
 	// ワールド行列
 	const DirectX::SimpleMath::Matrix& GetWorld() { return m_world; }
+	// 回転角(クォータニオン)
+	const DirectX::SimpleMath::Quaternion& GetRotationQ() { return m_rotationQ; }
 
 private:
 	// メンバ変数

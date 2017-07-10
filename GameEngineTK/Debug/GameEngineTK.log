@@ -3,24 +3,12 @@
   Assets\ground.FBX
   Assets\ground200m.FBX
   Assets\haed.FBX
+  Assets\shadow.FBX
   Assets\skydome.FBX
+  Assets\SphereNode.FBX
   Assets\TeaPot.FBX
   Assets\ufo.FBX
   Assets\wing.FBX
-  pch.cpp
-  Player.cpp
-  Obj3d.cpp
-  Main.cpp
   Game.cpp
-c:\users\s162176\documents\visual studio 2015\projects\gameenginetk\gameenginetk\game.cpp(58): warning C4244: '引数': 'int' から 'float' への変換です。データが失われる可能性があります。
-  FollowCamera.cpp
-  Enemy.cpp
-c:\users\s162176\documents\visual studio 2015\projects\gameenginetk\gameenginetk\enemy.cpp(58): warning C4244: '=': 'int' から 'float' への変換です。データが失われる可能性があります。
-c:\users\s162176\documents\visual studio 2015\projects\gameenginetk\gameenginetk\enemy.cpp(59): warning C4244: '=': 'int' から 'float' への変換です。データが失われる可能性があります。
-  DebugCamera.cpp
-  Collision.cpp
-  Camera.cpp
-  コードを生成中...
-     ライブラリ C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.lib とオブジェクト C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.exp を作成中
   GameEngineTK.vcxproj -> C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.exe
   GameEngineTK.vcxproj -> C:\Users\s162176\Documents\Visual Studio 2015\Projects\GameEngineTK\Debug\GameEngineTK.pdb (Full PDB)

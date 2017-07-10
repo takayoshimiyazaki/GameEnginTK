@@ -14,12 +14,19 @@
 #include <Keyboard.h>
 #include <vector>
 #include "Obj3D.h"
-
+#include "CollisionNode.h"
 
 // 自機
 class Player
 {
 public:
+	// 重力加速度
+	const float GRAVITY_ACC = 0.03f;
+	// ジャンプ加速度
+	const float JUMP_SPEED_FIRST = 0.5f;
+	// ジャンプ速度制限 
+	const float JUMP_SPEED_MAX = 0.3f;
+
 	// 自機パーツ
 	enum PARTS
 	{
@@ -57,6 +64,15 @@ public:
 	void SetRot(const DirectX::SimpleMath::Vector3& rot);
 	// ワールド行列を取得
 	const DirectX::SimpleMath::Matrix& GetLocalWorld();
+	void StartJump();
+	void StartFall();
+	void StopJump();
+	// 弾丸用の当たり判定を取得
+	const SphereNode& GetCollisionNodeBullet() { return m_CollisionNodeBullet; }
+	// 全体用の当たり判定を取得
+	const SphereNode& GetCollisionNodeBody() { return m_CollisionNodeBody; }
+	// 速度を取得
+	const DirectX::SimpleMath::Vector3& GetVelocity() { return m_Velocity; }
 
 protected:
 	// メンバ変数
@@ -82,4 +98,13 @@ protected:
 	// バレットの寿命
 	int m_bulletCnt;
 
+	// 弾丸用の当たり判定
+	SphereNode m_CollisionNodeBullet;
+
+	// 当たり判定
+	SphereNode m_CollisionNodeBody;
+	// 速度
+	DirectX::SimpleMath::Vector3 m_Velocity;
+	// 落下中フラグ
+	bool m_isJump;
 };

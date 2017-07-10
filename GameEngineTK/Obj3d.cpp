@@ -15,6 +15,8 @@ std::unique_ptr<DirectX::CommonStates> Obj3d::m_states;
 // エフェクトファクトリー
 std::unique_ptr<DirectX::EffectFactory> Obj3d::m_factory;
 
+ID3D11BlendState* Obj3d::m_pBlendStateSubtract;
+
 
 void Obj3d::InitializeStatic(Microsoft::WRL::ComPtr<ID3D11Device> d3dDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3dContext, Camera * camera)
 {
@@ -28,6 +30,20 @@ void Obj3d::InitializeStatic(Microsoft::WRL::ComPtr<ID3D11Device> d3dDevice, Mic
 	m_factory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
 	// テクスチャのパスを指定
 	m_factory->SetDirectory(L"$Resources");
+
+	// 減算描画用のブレンドステートを作成
+	D3D11_BLEND_DESC desc;
+	desc.AlphaToCoverageEnable = false;
+	desc.IndependentBlendEnable = false;
+	desc.RenderTarget[0].BlendEnable = true;
+	desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
+	desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_REV_SUBTRACT;
+	desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	HRESULT ret = m_d3dDevice->CreateBlendState(&desc, &m_pBlendStateSubtract);
 }
 
 Obj3d::Obj3d()
@@ -38,6 +54,11 @@ Obj3d::Obj3d()
 	// デフォルトではオイラー角を使用
 	m_UseQuaternion = false;
 }
+
+//Obj3d::Obj3d(const Obj3d& obj)
+//{
+//	this->m_model = std::move(obj.m_model);
+//}
 
 void Obj3d::LoadModel(const wchar_t * fileName)
 {
@@ -82,7 +103,69 @@ void Obj3d::Draw()
 	// 描画
 	if (m_model)
 	{
-		m_model->Draw(m_d3dContext.Get(), *m_states, m_world, m_camera->GetViewMatrix(), m_camera->GetProjectMatrix());
+		m_model->Draw(m_d3dContext.Get(), *m_states, m_world, m_camera->GetViewMatrix(), m_camera->GetProjectMatrix());		
 	}
 }
 
+/**
+*	@brief オブジェクトのライティングを無効にする
+*/
+void Obj3d::DisableLighting()
+{
+	if (m_model)
+	{
+		// モデル内の全メッシュ分回す
+		ModelMesh::Collection::const_iterator it_mesh = m_model->meshes.begin();
+		for (; it_mesh != m_model->meshes.end(); it_mesh++)
+		{
+			ModelMesh* modelmesh = it_mesh->get();
+			assert(modelmesh);
+
+			// メッシュ内の全メッシュパーツ分回す
+			std::vector<std::unique_ptr<ModelMeshPart>>::iterator it_meshpart = modelmesh->meshParts.begin();
+			for (; it_meshpart != modelmesh->meshParts.end(); it_meshpart++)
+			{
+				ModelMeshPart* meshpart = it_meshpart->get();
+				assert(meshpart);
+
+				// メッシュパーツにセットされたエフェクトをBasicEffectとして取得
+				std::shared_ptr<IEffect> ieff = meshpart->effect;
+				BasicEffect* eff = dynamic_cast<BasicEffect*>(ieff.get());
+				if (eff != nullptr)
+				{
+					// 自己発光を最大値に
+					eff->SetEmissiveColor(Vector3(1, 1, 1));
+
+					// エフェクトに含む全ての平行光源分について処理する
+					for (int i = 0; i < BasicEffect::MaxDirectionalLights; i++)
+					{
+						// ライトを無効にする
+						eff->SetLightEnabled(i, false);
+					}
+				}
+			}
+		}
+	}
+}
+
+void Obj3d::SetSubtractive()
+{
+	// 減算描画を設定
+	m_d3dContext->OMSetBlendState(m_pBlendStateSubtract, nullptr, 0xffffff);
+}
+
+void Obj3d::DrawSubtractive()
+{
+	if (m_model)
+	{
+		assert(m_camera);
+		const Matrix& view = m_camera->GetViewMatrix();
+		const Matrix& projection = m_camera->GetProjectMatrix();
+
+		assert(m_d3dContext);
+		assert(m_states);
+
+		// 減算描画用の設定関数を渡して描画
+		m_model->Draw(m_d3dContext.Get(), *m_states, m_world, view, projection, false, Obj3d::SetSubtractive);
+	}
+}

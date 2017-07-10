@@ -60,6 +60,13 @@ void Enemy::Initialize()
 
 	SetTrans(pos);
 
+	{ // 全体用の当たり判定ノードの設定
+		m_CollisionNodeBody.Initialize();
+		m_CollisionNodeBody.SetParent(&m_Obj[PARTS_CATAPIRA]);
+		m_CollisionNodeBody.SetLocalRadius(0.7f);
+		m_CollisionNodeBody.SetTrans(Vector3(0, 0.7f, 0));
+	}
+
 	m_attack = false;
 	m_part = 0;
 	m_cnt = 0;
@@ -80,7 +87,7 @@ void Enemy::Update()
 	m_KeyboardTracker.Update(keystate);
 
 	// パーツギミック
-	{
+	/*{
 		m_cycle += 0.1f;
 
 		m_rotate += 0.1f;
@@ -143,7 +150,7 @@ void Enemy::Update()
 				break;
 			}
 		}
-	}
+	}*/
 
 	m_timer--;
 	if (m_timer < 0)
@@ -198,6 +205,7 @@ void Enemy::Update()
 
 	Calc();
 	
+	
 }
 
 ////////////////////////////////////////////////////////////////
@@ -210,6 +218,7 @@ void Enemy::Calc()
 		it->Update();
 
 	}
+	m_CollisionNodeBody.Update();
 }
 
 //-----------------------------------------------------------------------------
@@ -223,6 +232,7 @@ void Enemy::Draw()
 		it->Draw();
 
 	}
+	m_CollisionNodeBody.Draw();
 }
 
 const DirectX::SimpleMath::Vector3& Enemy::GetTrans()

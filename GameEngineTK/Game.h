@@ -6,6 +6,7 @@
 
 #include "StepTimer.h"
 #include <PrimitiveBatch.h>
+#include <SpriteBatch.h>
 #include <VertexTypes.h>
 #include <Effects.h>
 #include <CommonStates.h>
@@ -17,6 +18,8 @@
 #include "Obj3d.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "ModelEffect.h"
+#include "LandShape.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -74,6 +77,8 @@ private:
 	// Rendering loop timer.
 	DX::StepTimer                                   m_timer;
 
+	// スプライトバッチ
+	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionNormal>> m_batch;
 	// エフェクト
@@ -98,10 +103,16 @@ private:
 
 	// モデル
 	Obj3d m_objSkyDome;	
-	std::unique_ptr<DirectX::Model> m_modelGround;
+	//std::unique_ptr<DirectX::Model> m_modelGround;
+	LandShape m_LandShape;
+	// クリア画像
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_clearImage;
+	DirectX::SimpleMath::Vector2 m_screenPos;		// スプライト表示の座標
+	DirectX::SimpleMath::Vector2 m_origin;			// スプライトの原点
 
 	// キーボード
 	std::unique_ptr<DirectX::Keyboard> m_keyboard;
+	DirectX::Keyboard::KeyboardStateTracker m_KeyboardTracker;
 
 	// カメラ
 	std::unique_ptr<FollowCamera> m_camera;
@@ -109,7 +120,13 @@ private:
 	// プレイヤー
 	std::unique_ptr<Player> m_player;
 
-	// プレイヤー
+	// 敵
 	std::vector<std::unique_ptr<Enemy>> m_enemies;
 	
+	// 敵の数
+	int m_enemyNum;
+
+	// クリア判定
+	bool m_winFlg;
+
 };

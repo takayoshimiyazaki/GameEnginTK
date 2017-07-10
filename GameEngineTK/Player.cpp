@@ -7,6 +7,8 @@
 
 #include "Player.h"
 
+#define ROT_SPEED 10.0f
+
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
@@ -37,7 +39,6 @@ void Player::Initialize()
 	m_Obj[PARTS_HEAD].SetObjParent(&m_Obj[PARTS_CATAPIRA]);
 	m_Obj[PARTS_WING].SetObjParent(&m_Obj[PARTS_HEAD]);
 	m_Obj[PARTS_UFO].SetObjParent(&m_Obj[PARTS_HEAD]);
-
 	// 子パーツから親にオフセット（座標のずれ）をセット
 	m_Obj[PARTS_HEAD].SetTranslation(Vector3(0, 0.3f, 0));
 	m_Obj[PARTS_WING].SetTranslation(Vector3(0, 0.3f, 0.5f));
@@ -58,6 +59,23 @@ void Player::Initialize()
 	m_wingRotate = 0;
 	m_bulletCnt = 0;
 
+	{ // 弾丸用の当たり判定ノードの設定
+		m_CollisionNodeBullet.Initialize();
+		// 親パーツを設定
+		m_CollisionNodeBullet.SetParent(&m_Obj[PARTS_WING]);
+		m_CollisionNodeBullet.SetTrans(Vector3(0, 0, -0.3f));
+		m_CollisionNodeBullet.SetLocalRadius(0.5f);
+	}
+
+	{ // 全体用の当たり判定ノードの設定
+		m_CollisionNodeBody.Initialize();
+		m_CollisionNodeBody.SetParent(&m_Obj[PARTS_CATAPIRA]);
+		m_CollisionNodeBody.SetLocalRadius(0.7f);
+		m_CollisionNodeBody.SetTrans(Vector3(0, 0.7f, 0));
+	}
+	
+	m_isJump = false;
+
 }
 
 //-----------------------------------------------------------------------------
@@ -67,6 +85,31 @@ void Player::Update()
 {
 	Keyboard::State keystate = m_pKeyboard->GetState();
 	m_KeyboardTracker.Update(keystate);
+
+	if (m_KeyboardTracker.IsKeyPressed(Keyboard::Keys::Space))
+	{
+		// ジャンプ開始
+		StartJump();
+	}
+
+	// 落下中であれば
+	if (m_isJump)
+	{
+		// 重力による加速
+		m_Velocity.y -= GRAVITY_ACC;
+
+		// 下向き速度の限界処理
+		if (m_Velocity.y < -JUMP_SPEED_MAX)
+		{
+			m_Velocity.y = -JUMP_SPEED_MAX;
+		}
+	}
+
+	{// 速度による移動
+		Vector3 trans = GetTrans();
+		trans += m_Velocity;
+		SetTrans(trans);
+	}
 
 	// パーツギミック
 	{
@@ -133,6 +176,59 @@ void Player::Update()
 			}
 		}*/
 	}
+	//// ←回転/→回転
+	//if (keystate.A)
+	//{
+	//	// 現在の角度を取得
+	//	Quaternion rot = m_Obj[PARTS_CATAPIRA].GetRotationQ();
+	//	Quaternion rotadd = Quaternion::CreateFromAxisAngle(Vector3::UnitY, ROT_SPEED);
+	//	rot = rotadd * rot;
+	//	// 回転後の角度を反映
+	//	m_Obj[PARTS_CATAPIRA].SetRotationQ(rot);
+	//}
+	//if (keystate.D)
+	//{
+	//	// 現在の角度を取得
+	//	Quaternion rot = m_Obj[PARTS_CATAPIRA].GetRotationQ();
+	//	Quaternion rotadd = Quaternion::CreateFromAxisAngle(Vector3::UnitY, -ROT_SPEED);
+	//	rot = rotadd * rot;
+	//	// 回転後の角度を反映
+	//	m_Obj[PARTS_CATAPIRA].SetRotationQ(rot);
+	//}
+
+	//// ←回転/→回転
+	//if (keystate.W)
+	//{
+	//	// 現在の角度を取得
+	//	Quaternion rot = m_Obj[PARTS_CATAPIRA].GetRotationQ();
+	//	Quaternion rotadd = Quaternion::CreateFromAxisAngle(Vector3::UnitX, ROT_SPEED);
+	//	rot = rotadd * rot;
+	//	// 回転後の角度を反映
+	//	m_Obj[PARTS_CATAPIRA].SetRotationQ(rot);
+	//}
+	//if (keystate.S)
+	//{
+	//	// 現在の角度を取得
+	//	Quaternion rot = m_Obj[PARTS_CATAPIRA].GetRotationQ();
+	//	Quaternion rotadd = Quaternion::CreateFromAxisAngle(Vector3::UnitX, -ROT_SPEED);
+	//	rot = rotadd * rot;
+	//	// 回転後の角度を反映
+	//	m_Obj[PARTS_CATAPIRA].SetRotationQ(rot);
+	//}
+
+	//// 自動で前進
+	//{
+	//	// 現在の座標・回転角を取得
+	//	Vector3 trans = m_Obj[PARTS_CATAPIRA].GetTranslation();
+	//	// 移動ベクトル(Z座標前進)
+	//	SimpleMath::Vector3 moveV(0, 0, -0.1f);
+	//	// 移動ベクトルを回転する
+	//	moveV = Vector3::TransformNormal(moveV, m_Obj[PARTS_CATAPIRA].GetWorld());
+	//	// 移動
+	//	trans += moveV;
+	//	// 移動した座標を反映
+	//	m_Obj[PARTS_CATAPIRA].SetTranslation(trans);
+	//}
 
 	// 左旋回処理
 	if (keystate.A)
@@ -227,8 +323,10 @@ void Player::Calc()
 	for (std::vector<Obj3d>::iterator it = m_Obj.begin(); it != m_Obj.end(); it++)
 	{
 		it->Update();
-
 	}
+
+	m_CollisionNodeBullet.Update();
+	m_CollisionNodeBody.Update();
 }
 
 //-----------------------------------------------------------------------------
@@ -241,6 +339,8 @@ void Player::Draw()
 	{
 		it->Draw();
 	}
+	m_CollisionNodeBullet.Draw();
+	m_CollisionNodeBody.Draw();
 }
 
 void Player::FireBullet()
@@ -302,4 +402,33 @@ const DirectX::SimpleMath::Matrix& Player::GetLocalWorld()
 {
 	// タンクパーツのワールド行列を返す
 	return m_Obj[0].GetWorld();
+}
+
+// ジャンプを開始
+void Player::StartJump()
+{
+	if (!m_isJump)
+	{
+		// 上方向の初速を設定
+		m_Velocity.y = JUMP_SPEED_FIRST;
+		m_isJump = true;
+	}
+}
+
+// 落下を開始
+void Player::StartFall()
+{
+	if (!m_isJump)
+	{
+		// 上方向の初速を設定
+		m_Velocity.y = 0;
+		m_isJump = true;
+	}
+}
+
+// 落下を終了
+void Player::StopJump()
+{
+	m_isJump = false;
+	m_Velocity = Vector3::Zero;
 }

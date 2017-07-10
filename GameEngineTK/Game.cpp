@@ -4,6 +4,8 @@
 
 #include "pch.h"
 #include "Game.h"
+#include <WICTextureLoader.h>
+#include <DDSTextureLoader.h>
 
 extern void ExitGame();
 
@@ -40,6 +42,9 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// 初期化はここに書く
 
+	// スプライトバッチを生成
+	m_spriteBatch = std::make_unique<SpriteBatch>(m_d3dContext.Get());
+
 	// キーボードを生成
 	m_keyboard = std::make_unique<Keyboard>();
 
@@ -50,12 +55,20 @@ void Game::Initialize(HWND window, int width, int height)
 	// 3Dオブジェクトの静的メンバ変数の初期化
 	Obj3d::InitializeStatic(m_d3dDevice,m_d3dContext,m_camera.get());
 
+	// 土地当たりの設定
+	LandShapeCommonDef lscDef;
+	lscDef.pDevice = m_d3dDevice.Get();
+	lscDef.pDeviceContext = m_d3dContext.Get();
+	lscDef.pCamera = m_camera.get();
+	// 土地当たりの共通初期化
+	LandShape::InitializeCommon(lscDef);
+
 	m_batch = std::make_unique<PrimitiveBatch<VertexPositionNormal>>(m_d3dContext.Get());
 
 	m_effect = std::make_unique<BasicEffect>(m_d3dDevice.Get());
 
-	m_effect->SetProjection(XMMatrixOrthographicOffCenterRH(0,
-		m_outputWidth, m_outputHeight, 0, 0, 1));
+	m_effect->SetProjection(XMMatrixOrthographicOffCenterRH(0.0f,
+		(float)m_outputWidth, (float)m_outputHeight, 0.0f, 0.0f, 1.0f));
 	m_effect->SetVertexColorEnabled(true);
 
 	void const* shaderByteCode;
@@ -81,7 +94,9 @@ void Game::Initialize(HWND window, int width, int height)
 	// モデルを生成
 	m_objSkyDome.LoadModel(L"$Resources/skydome.cmo");
 
-	m_modelGround = Model::CreateFromCMO(m_d3dDevice.Get(),	L"$Resources/ground200m.cmo", *m_factory);
+	//m_modelGround = Model::CreateFromCMO(m_d3dDevice.Get(),	L"$Resources/ground200m.cmo", *m_factory);
+	m_LandShape.Initialize(L"ground200m",L"ground200m");
+	m_LandShape.SetRot(Vector3(0.2f, 0, 0));
 
 	// プレイヤーの生成
 	m_player = std::make_unique<Player>(m_keyboard.get());
@@ -91,14 +106,39 @@ void Game::Initialize(HWND window, int width, int height)
 	m_camera->SetPlayer(m_player.get());
 
 	// 敵を生成
-	int enemyNum = rand() % 10 + 1;
-	m_enemies.resize(enemyNum);
+	m_enemyNum = rand() % 10 + 1;
+	m_enemies.resize(m_enemyNum);
 
-	for (int i = 0; i < enemyNum; i++)
+	for (int i = 0; i < m_enemyNum; i++)
 	{
 		m_enemies[i] = std::make_unique<Enemy>(m_keyboard.get());
 		m_enemies[i]->Initialize();
 	}
+
+	// 画像を読み込む
+	ComPtr<ID3D11Resource> resource;
+	DX::ThrowIfFailed(
+		CreateWICTextureFromFile(m_d3dDevice.Get(), L"$Resources/GameClear.png",
+			resource.GetAddressOf(),
+			m_clearImage.ReleaseAndGetAddressOf()));
+
+	// クリアのテクスチャ
+	ComPtr<ID3D11Texture2D> clear;
+	DX::ThrowIfFailed(resource.As(&clear));
+	
+	// テクスチャの設定
+	CD3D11_TEXTURE2D_DESC attackDesc;
+	clear->GetDesc(&attackDesc);
+	
+	// テクスチャの原点をテクスチャの中心にする
+	m_origin.x = float(attackDesc.Width / 2);
+	m_origin.y = float(attackDesc.Height / 2);
+	
+	// 表示座標を画面中心に設定
+	m_screenPos.x = m_outputWidth / 2.f;
+	m_screenPos.y = m_outputHeight / 2.f;
+
+	m_winFlg = false;		// 勝利フラグをfalseに設定
 }
 
 // Executes the basic game loop.
@@ -124,6 +164,7 @@ void Game::Update(DX::StepTimer const& timer)
 	
 	// キーボードの状態を取得
 	Keyboard::State kb = m_keyboard->GetState();
+	m_KeyboardTracker.Update(kb);
 
 	m_player->Update();
 
@@ -133,14 +174,144 @@ void Game::Update(DX::StepTimer const& timer)
 		//enemy->Update();
 
 		(*it)->Update();
-	}
+	}	
+	
+
+	{	// 弾丸と敵の当たり判定
+		// 弾丸の当たり判定球を取得
+		const Sphere& bulletSphere = m_player->GetCollisionNodeBullet();
+
+		// 敵の数だけ処理する
+		for (std::vector<std::unique_ptr<Enemy>>::iterator it = m_enemies.begin(); it != m_enemies.end();)
+		{
+			Enemy* enemy = it->get();
+			// 敵の当たり判定球を取得
+			const Sphere& enemySphere = enemy->GetCollisionNodeBody();
+
+			// 二つの球が当たっていたら
+			if (CheckSphere2Sphere(bulletSphere, enemySphere))
+			{
+				// 敵を殺す								
+				ModelEffectManager::getInstance()->Entry(
+					L"$Resources/HitEffect.cmo",	// モデルファイル
+					10,	// 寿命フレーム数
+					Vector3(enemy->GetTrans().x, enemy->GetTrans().y + 1.0f, enemy->GetTrans().z),	// ワールド座標
+					Vector3(0, 0, 0),	// 速度
+					Vector3(0, 0, 0),	// 加速度
+					Vector3(0, 0, 0),	// 回転角（初期）
+					Vector3(90, 90, 90),	// 回転角（最終）
+					Vector3(0, 0, 0),	// スケール（初期）
+					Vector3(10, 10, 10)	// スケール（最終）
+				);				
+				// 消した要素の次の要素を指すイテレータ
+				it = m_enemies.erase(it);
+				m_enemyNum--;
+			}
+			else
+			{
+				// 消さなかった場合、普通にイテレータを進める
+				it++;
+			}
+		}
+	}	
 
 	// カメラの更新	
 	m_camera->Update();
 	m_view = m_camera->GetViewMatrix();
 	m_proj = m_camera->GetProjectMatrix();
-				
+			
+	// ドームの更新	
 	m_objSkyDome.Update();	
+	// LandShape
+	m_LandShape.Update();
+		
+	// エフェクトの更新	
+	ModelEffectManager::getInstance()->Update();
+
+	// 敵が全滅したら
+	/*if (m_enemyNum <= 0)
+	{
+		m_winFlg = true;
+	}*/
+
+	// Enterキーが押されたら
+	//if (m_KeyboardTracker.IsKeyPressed(Keyboard::Keyboard::Enter))
+	//{
+	//	// 残っている敵を消す
+	//	for (std::vector<std::unique_ptr<Enemy>>::iterator it = m_enemies.begin(); it != m_enemies.end(); it++)
+	//	{
+	//		// 消した要素の次の要素を指すイテレータ
+	//		it = m_enemies.erase(it);
+	//		m_enemyNum = 0;			
+	//	}
+
+	//	// 初期化
+	//	m_enemyNum = rand() % 10 + 1;
+	//	m_enemies.resize(m_enemyNum);
+
+	//	for (int i = 0; i < m_enemyNum; i++)
+	//	{
+	//		m_enemies[i] = std::make_unique<Enemy>(m_keyboard.get());
+	//		m_enemies[i]->Initialize();
+	//	}
+
+	//	m_winFlg = false;
+	//}
+
+	// 自機の地形へのめり込みを解消する
+	{
+		Sphere sphere = m_player->GetCollisionNodeBody();
+		// 自機のワールド座標
+		Vector3 trans = m_player->GetTrans();
+		// 球からプレイヤーへのベクトル
+		Vector3 sphere2player = trans - sphere.Center;
+		// めり込み排斥ベクトル
+		Vector3 reject;
+		if (m_LandShape.IntersectSphere(sphere, &reject))
+		{
+			// めり込みを解消するように球をずらす
+			sphere.Center += reject;
+		}
+		// 自機を移動
+		m_player->SetTrans(sphere.Center + sphere2player);
+		// ワールド行列を更新
+		m_player->Calc();
+	}
+
+	{// 自機が地面に乗る処理
+		const Vector3 vel = m_player->GetVelocity();
+		if (vel.y <= 0.0f)
+		{
+			// 自機の頭から足元への線分
+			Segment playerSegment;
+			// 自機のワールド座標
+			Vector3 trans = m_player->GetTrans();
+			playerSegment.Start = trans + Vector3(0, 1, 0);
+			// 足元50センチ下まで地面を検出
+			playerSegment.End = trans + Vector3(0, -0.5f, 0);
+			// 交点座標
+			Vector3 inter;
+			// 地形と線分の当たり判定(レイキャスト)
+			if (m_LandShape.IntersectSegment(playerSegment, &inter))
+			{
+				// Y座標を交点に移動させる
+				trans.y = inter.y;
+
+				// 落下を終了
+				m_player->StopJump();
+			}
+			else
+			{
+				// 落下を開始
+				m_player->StartFall();
+			}
+
+			// 自機を移動
+			m_player->SetTrans(trans);
+			// ワールド行列を更新
+			m_player->Calc();
+		}				
+	}
 }
 
 // Draws the scene.
@@ -184,12 +355,14 @@ void Game::Render()
 	// モデルの描画
 	m_objSkyDome.Draw();
 
-	m_modelGround->Draw(m_d3dContext.Get(),
+	/*m_modelGround->Draw(m_d3dContext.Get(),
 		*m_states,
 		Matrix::Identity,
 		m_view,
 		m_proj
-	);
+	);*/
+
+	m_LandShape.Draw();
 	
 	m_player->Draw();
 
@@ -197,12 +370,26 @@ void Game::Render()
 	{		
 		(*it)->Draw();
 	}
+
+	ModelEffectManager::getInstance()->Draw();
 	
 	m_batch->Begin();
 
 	m_batch->DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indices, 6, vertices, 4);
 
 	m_batch->End();
+	
+	// スプライトの描画
+	CommonStates states(m_d3dDevice.Get());
+	m_spriteBatch->Begin(SpriteSortMode_Deferred, states.NonPremultiplied());
+
+	if (m_winFlg)
+	{
+		m_spriteBatch->Draw(m_clearImage.Get(), m_screenPos, nullptr, Colors::White,
+			XMConvertToRadians(0.0), m_origin);
+	}
+
+	m_spriteBatch->End();
 
 	Present();
 }
